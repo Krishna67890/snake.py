@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width">
+  <title>Guess the colour game</title>
+  <link href="style.css" rel="stylesheet" type="text/css" />
+</head>
+<style>
+  * {
+    margin: 0;
+    padding: 0;
+  }
+
+  :root {
+    --colour1: #5CE1E6;
+  }
+
+  body {
+    background-color: #5CE1E6;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    flex-direction: column;
+  }
+
+  h1 {
+    font-size: 40px;
+    font-family: sans-serif;
+    color: var(--colour1);
+    font-weight: 400;
+    text-align: center;
+  }
+
+  p {
+    font-size: 20px;
+    color: white;
+    background-color: rgb(42, 42, 42);
+    margin: 20px;
+    width: 300px;
+    border-radius: 20px;
+    text-align: center;
+    padding: 10px;
+    font-family: sans-serif;
+  }
+
+  .cardsout {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+    background-color: red;
+    width: 400px;
+  }
+
+  .card {
+    width: 100px;
+    height: 100px;
+    background-color: var(--colour1);
+    margin: 5px;
+    border-radius: 15px;
+    cursor: pointer;
+  }
+
+  @media (max-width: 450px) {
+    h1 {
+      font-size: 30px;
+    }
+
+    .cardsout {
+      width: 300px;
+    }
+
+    .card {
+      width: 70px;
+      height: 70px;
+    }
+
+    p {
+      margin: 10px 0px;
+      width: 200px;
+    }
+  }
+
+  @media (max-width: 350px) {
+    h1 {
+      font-size: 25px;
+    }
+
+    .cardsout {
+      width: 250px;
+    }
+
+    .card {
+      width: 60px;
+      height: 60px;
+    }
+  }
+</style>
+
+<body>
+  <h1>Guess the Colour game</h1>
+  <p>RGB(20, 103, 110)</p>
+
+  <div class="cardsout">
+    <div class="card" onclick="checkanswer(0)"></div>
+    <div class="card" onclick="checkanswer(1)"></div>
+    <div class="card" onclick="checkanswer(2)"></div>
+    <div class="card" onclick="checkanswer(3)"></div>
+    <div class="card" onclick="checkanswer(4)"></div>
+    <div class="card" onclick="checkanswer(5)"></div>
+    <div class="card" onclick="checkanswer(6)"></div>
+    <div class="card" onclick="checkanswer(7)"></div>
+    <div class="card" onclick="checkanswer(8)"></div>
+  </div>
+
+  <script>
+    var cards = document.querySelectorAll(".card");
+    var p = document.querySelector("p");
+    var colors = [];
+    var randomIndex = Math.floor(Math.random() * 9);
+
+    function getRandomColor() {
+      return Math.floor(Math.random() * 256);
+    }
+
+    for (var i = 0; i < cards.length; i++) {
+      var randomColor = "rgb(" + getRandomColor() + "," + getRandomColor() + "," + getRandomColor() + ")";
+      cards[i].style.backgroundColor = randomColor;
+      colors.push(randomColor);
+    }
+
+    p.textContent = colors[randomIndex];
+
+    function checkanswer(cardIndex) {
+      if (colors[cardIndex] === p.textContent) {
+        alert("Correct Answer");
+        window.location.reload();
+      } else {
+        alert("Wrong Answer");
+      }
+    }
+  </script>
+</body>
+
+</html>
