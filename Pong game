@@ -12,6 +12,7 @@
         }
         body {
             display: flex;
+            flex-direction: column;
             justify-content: center;
             align-items: center;
             height: 100vh;
@@ -24,215 +25,212 @@
             display: block;
             border: 2px solid #fff;
         }
+        .controls {
+            margin-top: 10px;
+        }
+        .controls button {
+            padding: 10px 20px;
+            margin: 5px;
+            font-size: 16px;
+            cursor: pointer;
+        }
     </style>
 </head>
 <body>
     <canvas id="pongCanvas" width="800" height="400"></canvas>
+    
+    <!-- Player 1 controls (W/S) -->
+    <div class="controls">
+        <button id="wButton">Player 1 Up (W)</button>
+        <button id="sButton">Player 1 Down (S)</button>
+    </div>
+
+    <!-- Player 2 controls (Up/Down arrows) -->
+    <div class="controls">
+        <button id="upButton">Player 2 Up (↑)</button>
+        <button id="downButton">Player 2 Down (↓)</button>
+    </div>
+
     <script>
         const canvas = document.getElementById("pongCanvas");
-const ctx = canvas.getContext("2d");
+        const ctx = canvas.getContext("2d");
 
-// State for player paddles and ball
-let upArrowPressed = false;
-let downArrowPressed = false;
-let wPressed = false;
-let sPressed = false;
+        let upArrowPressed = false;
+        let downArrowPressed = false;
+        let wPressed = false;
+        let sPressed = false;
 
-const net = {
-    x: canvas.width / 2 - 1,
-    y: 0,
-    width: 2,
-    height: canvas.height,
-    color: "#FFF"
-};
+        const net = {
+            x: canvas.width / 2 - 1,
+            y: 0,
+            width: 2,
+            height: canvas.height,
+            color: "#FFF"
+        };
 
-const player1 = {
-    x: 0,
-    y: canvas.height / 2 - 50,
-    width: 10,
-    height: 100,
-    color: "#FFF",
-    score: 0
-};
+        const player1 = {
+            x: 0,
+            y: canvas.height / 2 - 50,
+            width: 10,
+            height: 100,
+            color: "#FFF",
+            score: 0
+        };
 
-const player2 = {
-    x: canvas.width - 10,
-    y: canvas.height / 2 - 50,
-    width: 10,
-    height: 100,
-    color: "#FFF",
-    score: 0
-};
+        const player2 = {
+            x: canvas.width - 10,
+            y: canvas.height / 2 - 50,
+            width: 10,
+            height: 100,
+            color: "#FFF",
+            score: 0
+        };
 
-const ball = {
-    x: canvas.width / 2,
-    y: canvas.height / 2,
-    radius: 7,
-    speed: 7,
-    velocityX: 5,
-    velocityY: 5,
-    color: "#05EDFF"
-};
+        const ball = {
+            x: canvas.width / 2,
+            y: canvas.height / 2,
+            radius: 7,
+            speed: 7,
+            velocityX: 5,
+            velocityY: 5,
+            color: "#05EDFF"
+        };
 
-// Draw rectangle (paddle, net)
-function drawRect(x, y, w, h, color) {
-    ctx.fillStyle = color;
-    ctx.fillRect(x, y, w, h);
-}
+        function drawRect(x, y, w, h, color) {
+            ctx.fillStyle = color;
+            ctx.fillRect(x, y, w, h);
+        }
 
-// Draw circle (ball)
-function drawArc(x, y, r, color) {
-    ctx.fillStyle = color;
-    ctx.beginPath();
-    ctx.arc(x, y, r, 0, Math.PI * 2, true);
-    ctx.closePath();
-    ctx.fill();
-}
+        function drawArc(x, y, r, color) {
+            ctx.fillStyle = color;
+            ctx.beginPath();
+            ctx.arc(x, y, r, 0, Math.PI * 2, true);
+            ctx.closePath();
+            ctx.fill();
+        }
 
-// Draw text (score)
-function drawText(text, x, y) {
-    ctx.fillStyle = "#FFF";
-    ctx.font = "35px sans-serif";
-    ctx.fillText(text, x, y);
-}
+        function drawText(text, x, y) {
+            ctx.fillStyle = "#FFF";
+            ctx.font = "35px sans-serif";
+            ctx.fillText(text, x, y);
+        }
 
-// Draw net
-function drawNet() {
-    drawRect(net.x, net.y, net.width, net.height, net.color);
-}
+        function drawNet() {
+            drawRect(net.x, net.y, net.width, net.height, net.color);
+        }
 
-// Reset ball position
-function resetBall() {
-    ball.x = canvas.width / 2;
-    ball.y = canvas.height / 2;
-    ball.speed = 7;
-    ball.velocityX = -ball.velocityX;
-}
+        function resetBall() {
+            ball.x = canvas.width / 2;
+            ball.y = canvas.height / 2;
+            ball.speed = 7;
+            ball.velocityX = -ball.velocityX;
+        }
 
-// Draw everything on the canvas
-function draw() {
-    drawRect(0, 0, canvas.width, canvas.height, "#000");
-    drawNet();
-    drawText(player1.score, canvas.width / 4, canvas.height / 5);
-    drawText(player2.score, 3 * canvas.width / 4, canvas.height / 5);
-    drawRect(player1.x, player1.y, player1.width, player1.height, player1.color);
-    drawRect(player2.x, player2.y, player2.width, player2.height, player2.color);
-    drawArc(ball.x, ball.y, ball.radius, ball.color);
-}
+        function draw() {
+            drawRect(0, 0, canvas.width, canvas.height, "#000");
+            drawNet();
+            drawText(player1.score, canvas.width / 4, canvas.height / 5);
+            drawText(player2.score, 3 * canvas.width / 4, canvas.height / 5);
+            drawRect(player1.x, player1.y, player1.width, player1.height, player1.color);
+            drawRect(player2.x, player2.y, player2.width, player2.height, player2.color);
+            drawArc(ball.x, ball.y, ball.radius, ball.color);
+        }
 
-// Move paddles based on key press
-function movePaddles() {
-    // Player 1 (W/S keys)
-    if (wPressed && player1.y > 0) {
-        player1.y -= 8;
-    } else if (sPressed && (player1.y < canvas.height - player1.height)) {
-        player1.y += 8;
-    }
+        function movePaddles() {
+            if (wPressed && player1.y > 0) {
+                player1.y -= 8;
+            } else if (sPressed && (player1.y < canvas.height - player1.height)) {
+                player1.y += 8;
+            }
 
-    // Player 2 (Arrow keys)
-    if (upArrowPressed && player2.y > 0) {
-        player2.y -= 8;
-    } else if (downArrowPressed && (player2.y < canvas.height - player2.height)) {
-        player2.y += 8;
-    }
-}
+            if (upArrowPressed && player2.y > 0) {
+                player2.y -= 8;
+            } else if (downArrowPressed && (player2.y < canvas.height - player2.height)) {
+                player2.y += 8;
+            }
+        }
 
-// Update the game state
-function update() {
-    ball.x += ball.velocityX;
-    ball.y += ball.velocityY;
+        function update() {
+            ball.x += ball.velocityX;
+            ball.y += ball.velocityY;
 
-    // Ball collision with top and bottom walls
-    if (ball.y + ball.radius > canvas.height || ball.y - ball.radius < 0) {
-        ball.velocityY = -ball.velocityY;
-    }
+            if (ball.y + ball.radius > canvas.height || ball.y - ball.radius < 0) {
+                ball.velocityY = -ball.velocityY;
+            }
 
-    // Ball collision with paddles
-    let player = (ball.x < canvas.width / 2) ? player1 : player2;
+            let player = (ball.x < canvas.width / 2) ? player1 : player2;
 
-    if (collisionDetect(player, ball)) {
-        let collidePoint = (ball.y - (player.y + player.height / 2));
-        collidePoint = collidePoint / (player.height / 2);
+            if (collisionDetect(player, ball)) {
+                let collidePoint = (ball.y - (player.y + player.height / 2));
+                collidePoint = collidePoint / (player.height / 2);
 
-        let angleRad = (Math.PI / 4) * collidePoint;
-        let direction = (ball.x < canvas.width / 2) ? 1 : -1;
-        ball.velocityX = direction * ball.speed * Math.cos(angleRad);
-        ball.velocityY = ball.speed * Math.sin(angleRad);
+                let angleRad = (Math.PI / 4) * collidePoint;
+                let direction = (ball.x < canvas.width / 2) ? 1 : -1;
+                ball.velocityX = direction * ball.speed * Math.cos(angleRad);
+                ball.velocityY = ball.speed * Math.sin(angleRad);
 
-        ball.speed += 0.1;
-    }
+                ball.speed += 0.1;
+            }
 
-    // Ball out of bounds
-    if (ball.x - ball.radius < 0) {
-        player2.score++;
-        resetBall();
-    } else if (ball.x + ball.radius > canvas.width) {
-        player1.score++;
-        resetBall();
-    }
+            if (ball.x - ball.radius < 0) {
+                player2.score++;
+                resetBall();
+            } else if (ball.x + ball.radius > canvas.width) {
+                player1.score++;
+                resetBall();
+            }
 
-    movePaddles();
-}
+            movePaddles();
+        }
 
-// Check collision between ball and paddle
-function collisionDetect(player, ball) {
-    player.top = player.y;
-    player.bottom = player.y + player.height;
-    player.left = player.x;
-    player.right = player.x + player.width;
+        function collisionDetect(player, ball) {
+            player.top = player.y;
+            player.bottom = player.y + player.height;
+            player.left = player.x;
+            player.right = player.x + player.width;
 
-    ball.top = ball.y - ball.radius;
-    ball.bottom = ball.y + ball.radius;
-    ball.left = ball.x - ball.radius;
-    ball.right = ball.x + ball.radius;
+            ball.top = ball.y - ball.radius;
+            ball.bottom = ball.y + ball.radius;
+            ball.left = ball.x - ball.radius;
+            ball.right = ball.x + ball.radius;
 
-    return player.left < ball.right && player.top < ball.bottom && player.right > ball.left && player.bottom > ball.top;
-}
+            return player.left < ball.right && player.top < ball.bottom && player.right > ball.left && player.bottom > ball.top;
+        }
 
-// Main game loop
-function gameLoop() {
-    update();
-    draw();
-}
+        function gameLoop() {
+            update();
+            draw();
+        }
 
-// Handle keyboard input
-document.addEventListener("keydown", function(event) {
-    switch(event.keyCode) {
-        case 87: // W key
+        // Button controls
+        document.getElementById("wButton").addEventListener("mousedown", function() {
             wPressed = true;
-            break;
-        case 83: // S key
-            sPressed = true;
-            break;
-        case 38: // Up arrow
-            upArrowPressed = true;
-            break;
-        case 40: // Down arrow
-            downArrowPressed = true;
-            break;
-    }
-});
-
-document.addEventListener("keyup", function(event) {
-    switch(event.keyCode) {
-        case 87: // W key
+        });
+        document.getElementById("wButton").addEventListener("mouseup", function() {
             wPressed = false;
-            break;
-        case 83: // S key
+        });
+        document.getElementById("sButton").addEventListener("mousedown", function() {
+            sPressed = true;
+        });
+        document.getElementById("sButton").addEventListener("mouseup", function() {
             sPressed = false;
-            break;
-        case 38: // Up arrow
+        });
+
+        document.getElementById("upButton").addEventListener("mousedown", function() {
+            upArrowPressed = true;
+        });
+        document.getElementById("upButton").addEventListener("mouseup", function() {
             upArrowPressed = false;
-            break;
-        case 40: // Down arrow
+        });
+        document.getElementById("downButton").addEventListener("mousedown", function() {
+            downArrowPressed = true;
+        });
+        document.getElementById("downButton").addEventListener("mouseup", function() {
             downArrowPressed = false;
-            break;
-    }
-});
+        });
 
-// Start game loop
-setInterval(gameLoop, 1000 / 60);
-
+        setInterval(gameLoop, 1000 / 60);
     </script>
 </body>
 </html>
+
