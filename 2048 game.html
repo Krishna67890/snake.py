@@ -1,9 +1,8 @@
-<!DOCTYPE html>
-<html lang="en">
+<<html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>2048</title>
+    <meta charset="UTF-8"></meta>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"></meta>
+    <title>2048 Game</title>
     <style>
         body {
             font-family: Arial, Helvetica, sans-serif;
@@ -11,28 +10,32 @@
             background-color: #faf8ef;
             margin: 0;
             padding: 20px;
+            box-sizing: border-box;
         }
-        hr {
-            width: 500px;
-            margin: 20px auto;
-            border: 0;
-            height: 2px;
-            background-color: #bbada0;
+        h1 {
+            font-size: 2em;
+            margin-bottom: 20px;
+            color: #776e65;
         }
-        #board {
-            width: 420px;
-            height: 420px;
+        #board-container {
+            width: 100%;
+            max-width: 420px;
+            margin: 0 auto;
+            padding: 10px;
             background-color: #bbada0;
             border-radius: 6px;
-            padding: 10px;
-            margin: 0 auto;
+            box-sizing: border-box;
+        }
+        #board {
+            width: 100%;
             display: grid;
             grid-template-columns: repeat(4, 1fr);
             grid-gap: 10px;
         }
         .tile {
             width: 100%;
-            height: 100%;
+            padding-top: 100%; /* Maintains square shape */
+            position: relative;
             background-color: #cdc1b4;
             border-radius: 5px;
             display: flex;
@@ -41,8 +44,22 @@
             font-size: 2em;
             font-weight: bold;
             color: #776e65;
+            box-sizing: border-box;
+            transition: all 0.3s ease;
         }
-        /* Add tile colors */
+        .tile-inner {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 100%;
+            height: 100%;
+        }
+        /* Tile Colors */
         .x2 { background-color: #eee4da; color: #776e65; }
         .x4 { background-color: #ede0c8; color: #776e65; }
         .x8 { background-color: #f2b179; color: #f9f6f2; }
@@ -54,160 +71,200 @@
         .x512 { background-color: #edc850; color: #f9f6f2; }
         .x1024 { background-color: #edc53f; color: #f9f6f2; }
         .x2048 { background-color: #edc22e; color: #f9f6f2; }
+        /* New Tile Styles for numbers up to 1000 */
+        .x4096 { background-color: #3c3a32; color: #f9f6f2; }
+        .x8192 { background-color: #3c3a32; color: #f9f6f2; }
+        .x16384 { background-color: #3c3a32; color: #f9f6f2; }
+        .x32768 { background-color: #3c3a32; color: #f9f6f2; }
+        .x65536 { background-color: #3c3a32; color: #f9f6f2; }
+        .x131072 { background-color: #3c3a32; color: #f9f6f2; }
+        .x262144 { background-color: #3c3a32; color: #f9f6f2; }
+        .x524288 { background-color: #3c3a32; color: #f9f6f2; }
+        .x1048576 { background-color: #3c3a32; color: #f9f6f2; }
+        .x1000 { background-color: #3c3a32; color: #f9f6f2; }
+        
+        #score-container {
+            margin-top: 20px;
+        }
+        #score, #highScore {
+            font-size: 1.5em;
+            margin: 10px;
+            color: #776e65;
+        }
+        .button {
+            padding: 10px 20px;
+            margin: 5px;
+            background-color: #8f7a66;
+            color: #f9f6f2;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1em;
+        }
+        .button:hover {
+            background-color: #6f5e50;
+        }
+        .hidden {
+            display: none;
+        }
     </style>
 </head>
 <body>
-    <h1>2048</h1>
-    <hr>
-    <h2>Score: <span id="score">0</span></h2>
-    <div id="board"></div>
+    <h1>2048 Game</h1>
+    <div id="score-container">
+        <div id="score">Score: 0</div>
+        <div id="highScore">High Score: 0</div>
+    </div>
+    <div id="board-container">
+        <div id="board"></div>
+    </div>
+    <div id="controls">
+        <button class="button" onclick="moveBoard('up')">Up</button>
+        <button class="button" onclick="moveBoard('left')">Left</button>
+        <button class="button" onclick="moveBoard('down')">Down</button>
+        <button class="button" onclick="moveBoard('right')">Right</button>
+    </div>
+    <audio class="hidden" id="newTileSound">
+        <source src="newTile.mp3" type="audio/mpeg"></source>
+    </audio>
+    <audio class="hidden" id="mergeSound">
+        <source src="merge.mp3" type="audio/mpeg"></source>
+    </audio>
     <script>
         const boardSize = 4;
         let board = [];
         let score = 0;
+        let highScore = 0;
+        let canMove = true;
 
-        // Initialize the game board
         function initBoard() {
-            board = Array(boardSize).fill(null).map(() => Array(boardSize).fill(0));
+            board = Array.from({ length: boardSize }, () => Array(boardSize).fill(0));
+            score = 0;
+            updateScore();
             addRandomTile();
             addRandomTile();
             updateBoard();
         }
 
-        // Add a random tile (2 or 4) to the board
         function addRandomTile() {
             let emptyTiles = [];
             for (let r = 0; r < boardSize; r++) {
                 for (let c = 0; c < boardSize; c++) {
-                    if (board[r][c] === 0) {
-                        emptyTiles.push({r, c});
-                    }
+                    if (board[r][c] === 0) emptyTiles.push({ r, c });
                 }
             }
 
-            if (emptyTiles.length === 0) return;
-
-            let {r, c} = emptyTiles[Math.floor(Math.random() * emptyTiles.length)];
-            board[r][c] = Math.random() < 0.9 ? 2 : 4;
+            if (emptyTiles.length > 0) {
+                const { r, c } = emptyTiles[Math.floor(Math.random() * emptyTiles.length)];
+                board[r][c] = Math.random() < 0.9 ? 2 : 4;
+                playSound('newTileSound');
+            }
         }
 
-        // Update the HTML representation of the board
         function updateBoard() {
-            const boardDiv = document.getElementById('board');
-            boardDiv.innerHTML = '';
+            const boardElement = document.getElementById('board');
+            boardElement.innerHTML = '';
 
             for (let r = 0; r < boardSize; r++) {
                 for (let c = 0; c < boardSize; c++) {
                     const tileValue = board[r][c];
-                    const tileDiv = document.createElement('div');
-                    tileDiv.className = 'tile';
-                    if (tileValue) {
-                        tileDiv.classList.add('x' + tileValue);
-                        tileDiv.textContent = tileValue;
-                    }
-                    boardDiv.appendChild(tileDiv);
+                    const tileElement = document.createElement('div');
+                    tileElement.className = `tile x${tileValue}`;
+                    tileElement.innerHTML = `<div class="tile-inner">${tileValue > 0 ? tileValue : ''}</div>`;
+                    boardElement.appendChild(tileElement);
                 }
             }
 
-            document.getElementById('score').textContent = score;
+            updateScore();
         }
 
-        // Move the board in the specified direction
+        function updateScore() {
+            document.getElementById('score').textContent = `Score: ${score}`;
+            if (score > highScore) {
+                highScore = score;
+                document.getElementById('highScore').textContent = `High Score: ${highScore}`;
+            }
+        }
+
         function moveBoard(direction) {
+            if (!canMove) return;
+            canMove = false;
+
             let moved = false;
 
-            for (let i = 0; i < boardSize; i++) {
-                let line = [];
-                for (let j = 0; j < boardSize; j++) {
-                    if (direction === 'left' || direction === 'right') {
-                        line.push(board[i][j]);
-                    } else {
-                        line.push(board[j][i]);
+            function slideAndMerge(rowOrCol) {
+                let line = rowOrCol.map(cell => board[cell[0]][cell[1]]);
+                let mergedLine = mergeLine(line);
+                for (let i = 0; i < boardSize; i++) {
+                    let value = mergedLine[i];
+                    let [r, c] = rowOrCol[i];
+                    if (board[r][c] !== value) {
+                        moved = true;
+                        board[r][c] = value;
                     }
                 }
+            }
 
-                let mergedLine = mergeLine(direction === 'right' || direction === 'down' ? line.reverse() : line);
-                if (direction === 'right' || direction === 'down') mergedLine.reverse();
-
-                for (let j = 0; j < boardSize; j++) {
-                    let value = mergedLine[j];
-                    if (direction === 'left' || direction === 'right') {
-                        if (board[i][j] !== value) moved = true;
-                        board[i][j] = value;
-                    } else {
-                        if (board[j][i] !== value) moved = true;
-                        board[j][i] = value;
-                    }
+            for (let i = 0; i < boardSize; i++) {
+                if (direction === 'left') {
+                    slideAndMerge(Array.from({ length: boardSize }, (_, j) => [i, j]));
+                } else if (direction === 'right') {
+                    slideAndMerge(Array.from({ length: boardSize }, (_, j) => [i, boardSize - 1 - j]));
+                } else if (direction === 'up') {
+                    slideAndMerge(Array.from({ length: boardSize }, (_, j) => [j, i]));
+                } else if (direction === 'down') {
+                    slideAndMerge(Array.from({ length: boardSize }, (_, j) => [boardSize - 1 - j, i]));
                 }
             }
 
             if (moved) {
                 addRandomTile();
-                updateBoard();
-                checkGameOver();
             }
+            updateBoard();
+            canMove = true;
+            checkGameOver();
         }
 
-        // Merge a single row or column (line)
         function mergeLine(line) {
             let merged = [];
-            let skip = false;
-
-            for (let i = 0; i < line.length; i++) {
-                if (skip) {
-                    skip = false;
-                    continue;
-                }
-
-                if (line[i] !== 0 && line[i] === line[i + 1]) {
-                    merged.push(line[i] * 2);
-                    score += line[i] * 2;
-                    skip = true; // Skip the next tile since it's merged
-                } else {
-                    merged.push(line[i]);
+            for (let i = 0; i < boardSize; i++) {
+                if (line[i] !== 0) {
+                    if (merged.length > 0 && merged[merged.length - 1] === line[i]) {
+                        merged[merged.length - 1] *= 2;
+                        score += merged[merged.length - 1];
+                        playSound('mergeSound');
+                    } else {
+                        merged.push(line[i]);
+                    }
                 }
             }
-
-            while (merged.length < boardSize) {
-                merged.push(0);
-            }
-
+            while (merged.length < boardSize) merged.push(0);
             return merged;
         }
 
-        // Check for game over
         function checkGameOver() {
             for (let r = 0; r < boardSize; r++) {
                 for (let c = 0; c < boardSize; c++) {
-                    if (board[r][c] === 0) return false;
-                    if (r > 0 && board[r][c] === board[r - 1][c]) return false;
-                    if (c > 0 && board[r][c] === board[r][c - 1]) return false;
+                    if (board[r][c] === 0) return; // still have empty tiles
+                    if (r < boardSize - 1 && board[r][c] === board[r + 1][c]) return; // can merge down
+                    if (c < boardSize - 1 && board[r][c] === board[r][c + 1]) return; // can merge right
                 }
             }
-
             alert('Game Over!');
             initBoard();
         }
 
-        // Handle keypress events to move the board
-        document.addEventListener('keydown', (event) => {
-            switch (event.key) {
-                case 'ArrowUp':
-                    moveBoard('up');
-                    break;
-                case 'ArrowDown':
-                    moveBoard('down');
-                    break;
-                case 'ArrowLeft':
-                    moveBoard('left');
-                    break;
-                case 'ArrowRight':
-                    moveBoard('right');
-                    break;
-            }
+        function playSound(soundId) {
+            document.getElementById(soundId).play();
+        }
+
+        window.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowUp') moveBoard('up');
+            else if (e.key === 'ArrowDown') moveBoard('down');
+            else if (e.key === 'ArrowLeft') moveBoard('left');
+            else if (e.key === 'ArrowRight') moveBoard('right');
         });
 
-        // Start the game
         initBoard();
     </script>
 </body>
